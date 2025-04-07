@@ -139,14 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleCellClick(e) {
         const row = parseInt(e.target.dataset.row);
         const col = parseInt(e.target.dataset.col);
-        
+    
         if (e.target.classList.contains('hit') || e.target.classList.contains('miss')) {
             return;
         }
-        
+    
         gameState.moves++;
         moveCounter.textContent = gameState.moves;
-        
+    
         let hit = false;
         for (const part of gameState.shipParts) {
             if (part.row === row && part.col === col) {
@@ -154,15 +154,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 part.hit = true;
                 gameState.hitParts++;
                 e.target.classList.add('hit');
+                e.target.style.backgroundColor = 'red'; // Красный цвет для попадания без чита
                 break;
             }
         }
-        
+    
         if (!hit) {
             e.target.classList.add('miss');
             moveShip();
         }
-        
+    
         if (gameState.hitParts === gameState.shipSize) {
             setTimeout(() => {
                 alert(`Поздравляем! Вы победили за ${gameState.moves} ходов и ${gameTimer.textContent} времени!`);
@@ -173,23 +174,49 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function moveShip() {
         const hitParts = gameState.shipParts.filter(part => part.hit);
-        
+    
+        // Убираем подсветку старого местоположения корабля
+        gameState.shipParts.forEach(part => {
+            const cell = document.querySelector(`.cell[data-row="${part.row}"][data-col="${part.col}"]`);
+            if (cell && !cell.classList.contains('hit')) {
+                cell.style.backgroundColor = ''; // Убираем подсветку
+            }
+        });
+    
+        // Перемещаем корабль
         placeShip();
-        
-        for (const hitPart of hitParts) {
-            for (const part of gameState.shipParts) {
-                if (!part.hit && part.row === hitPart.row && part.col === hitPart.col) {
-                    part.hit = true;
-                    gameState.hitParts++;
-                    
-                    const cell = document.querySelector(`.cell[data-row="${part.row}"][data-col="${part.col}"]`);
-                    if (cell && !cell.classList.contains('hit')) {
+    
+        // Восстанавливаем подбитые части на новом местоположении
+        hitParts.forEach(hitPart => {
+            const matchingPart = gameState.shipParts.find(
+                part => !part.hit && !hitParts.some(hp => hp.row === part.row && hp.col === part.col)
+            );
+    
+            if (matchingPart) {
+                matchingPart.hit = true;
+            }
+        });
+    
+        // Проверяем, включен ли режим "Чит"
+        const cheatModeButton = document.getElementById('toggleCheatMode');
+        const isCheatModeActive = cheatModeButton.textContent === 'Скрыть корабль';
+    
+        // Обновляем отображение всех частей корабля
+        gameState.shipParts.forEach(part => {
+            const cell = document.querySelector(`.cell[data-row="${part.row}"][data-col="${part.col}"]`);
+            if (cell) {
+                if (part.hit) {
+                    if (isCheatModeActive) {
                         cell.classList.add('hit');
+                        cell.style.backgroundColor = 'orange'; // Оранжевый цвет для подбитых частей в режиме "Чит"
+                    } else {
+                        cell.style.backgroundColor = ''; // Скрываем подбитую часть, если "Чит" выключен
                     }
-                    break;
+                } else {
+                    cell.style.backgroundColor = isCheatModeActive ? '#27ae60' : ''; // Зеленый цвет для неповрежденных частей
                 }
             }
-        }
+        });
     }
     
     function updateTimer() {
@@ -218,7 +245,11 @@ document.addEventListener('DOMContentLoaded', function() {
         gameState.shipParts.forEach(part => {
             const cell = document.querySelector(`.cell[data-row="${part.row}"][data-col="${part.col}"]`);
             if (cell) {
-                cell.style.backgroundColor = isCheatModeActive ? '#27ae60' : ''; // Зеленый цвет для подсветки
+                if (part.hit) {
+                    cell.style.backgroundColor = 'orange'; // Оранжевый цвет для подбитых частей
+                } else {
+                    cell.style.backgroundColor = isCheatModeActive ? '#27ae60' : ''; // Зеленый цвет для неповрежденных частей
+                }
             }
         });
     });
