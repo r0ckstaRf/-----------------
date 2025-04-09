@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (gameState.hitParts === gameState.shipSize) {
             setTimeout(() => {
-                alert(`Поздравляем! Вы победили за ${gameState.moves} ходов и ${gameTimer.textContent} времени!`);
+                alert(`Поздравляем! Вы победили за ${gameState.moves} ходов и ${gameTimer.textContent} времени!`); // FAFFA
                 resetGame();
             }, 100);
         }
