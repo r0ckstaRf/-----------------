@@ -15,6 +15,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const moveCounter = document.getElementById('moveCounter');
     const gameBoard = document.getElementById('gameBoard');
     
+    let leaderboard = [];
+
+    function updateLeaderboard(playerName, time, moves) {
+        leaderboard.push({ name: playerName, time, moves });
+        leaderboard.sort((a, b) => {
+            if (a.moves === b.moves) {
+                return a.time.localeCompare(b.time); // Сортировка по времени, если ходы равны
+            }
+            return a.moves - b.moves; // Сортировка по количеству ходов
+        });
+
+        // Оставляем только топ-3
+        leaderboard = leaderboard.slice(0, 3);
+
+        // Обновляем таблицу
+        const places = ['firstPlace', 'secondPlace', 'thirdPlace'];
+        leaderboard.forEach((entry, index) => {
+            document.getElementById(`${places[index]}Name`).textContent = entry.name;
+            document.getElementById(`${places[index]}Time`).textContent = entry.time;
+            document.getElementById(`${places[index]}Moves`).textContent = entry.moves;
+        });
+    }
+
     function checkForm() {
         const isFormValid = playerName.value.trim() !== '' && 
                             playerEmail.value.trim() !== '' && 
@@ -58,13 +81,15 @@ document.addEventListener('DOMContentLoaded', function() {
         moves: 0,
         startTime: null,
         timerInterval: null,
-        shipSize: 4
+        shipSize: 4,
+        hitCells: []
     };
     
     function initGame() {
         gameState.startTime = new Date();
         gameState.moves = 0;
         gameState.hitParts = 0;
+        gameState.hitCells = [];
         moveCounter.textContent = gameState.moves;
         
         gameState.timerInterval = setInterval(updateTimer, 1000);
@@ -139,14 +164,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleCellClick(e) {
         const row = parseInt(e.target.dataset.row);
         const col = parseInt(e.target.dataset.col);
-    
+
         if (e.target.classList.contains('hit') || e.target.classList.contains('miss')) {
+            // Если клетка уже подбита, уменьшаем размер корабля
+            if (e.target.classList.contains('hit')) {
+                if (gameState.shipSize > 1) {
+                    gameState.shipSize--; // Уменьшаем размер корабля
+                    alert(`Корабль уменьшен до ${gameState.shipSize} палуб!`);
+                }
+            }
             return;
         }
-    
+
         gameState.moves++;
         moveCounter.textContent = gameState.moves;
-    
+
         let hit = false;
         for (const part of gameState.shipParts) {
             if (part.row === row && part.col === col) {
@@ -154,16 +186,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 part.hit = true;
                 gameState.hitParts++;
                 e.target.classList.add('hit');
-                e.target.style.backgroundColor = 'red'; // Красный цвет для попадания без чита
+                e.target.style.backgroundColor = 'red'; // Красный цвет для попадания
+                gameState.hitCells.push({ row, col }); // Сохраняем подбитую клетку
                 break;
             }
         }
-    
+
         if (!hit) {
             e.target.classList.add('miss');
             moveShip();
         }
-    
+
         if (gameState.hitParts === gameState.shipSize) {
             setTimeout(() => {
                 alert(`Поздравляем! Вы победили за ${gameState.moves} ходов и ${gameTimer.textContent} времени!`);
@@ -178,8 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Убираем подсветку старого местоположения корабля
         gameState.shipParts.forEach(part => {
             const cell = document.querySelector(`.cell[data-row="${part.row}"][data-col="${part.col}"]`);
-            if (cell && !cell.classList.contains('hit')) {
+            if (cell && !gameState.hitCells.some(hit => hit.row === part.row && hit.col === part.col)) {
                 cell.style.backgroundColor = ''; // Убираем подсветку
+                cell.classList.remove('hit'); // Убираем класс 'hit'
             }
         });
     
@@ -217,6 +251,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    
+        // Обновляем отображение всех подбитых клеток
+        gameState.hitCells.forEach(hit => {
+            const cell = document.querySelector(`.cell[data-row="${hit.row}"][data-col="${hit.col}"]`);
+            if (cell) {
+                cell.style.backgroundColor = 'red'; // Красный цвет для подбитых клеток
+            }
+        });
     }
     
     function updateTimer() {
@@ -233,7 +275,14 @@ document.addEventListener('DOMContentLoaded', function() {
         clearInterval(gameState.timerInterval);
         gameContainer.style.display = 'none';
         formContainer.style.display = 'block';
-        
+
+        const playerName = document.getElementById('displayPlayerName').textContent;
+        const time = gameTimer.textContent;
+        const moves = gameState.moves;
+
+        // Обновляем таблицу рейтинга
+        updateLeaderboard(playerName, time, moves);
+
         playerForm.reset();
         startGameBtn.disabled = true;
     }
@@ -242,14 +291,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const isCheatModeActive = this.textContent === 'Показать корабль';
         this.textContent = isCheatModeActive ? 'Скрыть корабль' : 'Показать корабль';
     
+        // Обновляем отображение всех частей корабля
         gameState.shipParts.forEach(part => {
             const cell = document.querySelector(`.cell[data-row="${part.row}"][data-col="${part.col}"]`);
             if (cell) {
                 if (part.hit) {
-                    cell.style.backgroundColor = 'orange'; // Оранжевый цвет для подбитых частей
+                    cell.style.backgroundColor = isCheatModeActive ? 'orange' : ''; // Показываем или скрываем подбитые части
                 } else {
                     cell.style.backgroundColor = isCheatModeActive ? '#27ae60' : ''; // Зеленый цвет для неповрежденных частей
                 }
+            }
+        });
+    
+        // Обновляем отображение всех подбитых клеток
+        gameState.hitCells.forEach(hit => {
+            const cell = document.querySelector(`.cell[data-row="${hit.row}"][data-col="${hit.col}"]`);
+            if (cell) {
+                cell.style.backgroundColor = 'red'; // Красный цвет для подбитых клеток
             }
         });
     });

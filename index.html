@@ -39,11 +39,22 @@
         <div class="error-message" id="errorMessage"></div>
     </div>
     
-    <div id="gameContainer">
-        <div id="gameBoard"></div>
-        <button id="toggleCheatMode">Показать корабль</button>
+    <div class="game-container" id="gameContainer">
+        <h2 id="gameTitle">Морской бой с движущимся кораблем</h2>
+        <div class="game-info">
+            <div>Игрок: <span id="displayPlayerName"></span></div>
+            <div>Начало игры: <span id="gameStartTime"></span></div>
+        </div>
+        <div class="game-info">
+            <div class="timer">Время: <span id="gameTimer">00:00</span></div>
+            <div class="moves">Ходы: <span id="moveCounter">0</span></div>
+        </div>
+        
+        
         
         <div class="game-board" id="gameBoard"></div>
+
+        <button id="toggleCheatMode">Показать корабль</button>
     </div>
 
     <script src="js/func.js"></script>
