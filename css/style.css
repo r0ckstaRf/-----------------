@@ -74,6 +74,8 @@ button {
     font-size: 16px;
     display: block;
     margin: 20px auto 0;
+    width: 100%;
+    max-width: 200px;
 }
 
 button:disabled {
@@ -85,12 +87,15 @@ button:disabled {
     display: none;
     margin-top: 20px;
     background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
 }
 
 .game-info {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .game-board {
@@ -130,6 +135,7 @@ button:disabled {
     font-size: 18px;
     font-weight: bold;
     color: #f1c40f;
+    margin: 5px 0;
 }
 
 .error-message {
@@ -137,4 +143,88 @@ button:disabled {
     text-align: center;
     margin-top: 10px;
     display: none;
+}
+
+/* Адаптация под мобильные устройства */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    h1 {
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .form-container {
+        padding: 15px;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    button {
+        padding: 10px;
+        font-size: 15px;
+        max-width: 100%;
+    }
+
+    .game-board {
+        grid-template-columns: repeat(10, 1fr);
+        width: 100%;
+    }
+
+    .cell {
+        width: calc((100vw - 40px) / 10 - 4px);
+        height: calc((100vw - 40px) / 10 - 4px);
+        max-width: 35px;
+        max-height: 35px;
+        font-size: 12px;
+    }
+
+    .game-info {
+        flex-direction: column;
+    }
+
+    .game-info > div {
+        margin-bottom: 8px;
+    }
+
+    .timer, .moves {
+        font-size: 16px;
+    }
+
+    #toggleCheatMode {
+        width: 100%;
+        margin-top: 15px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 20px;
+    }
+
+    .form-container {
+        padding: 12px;
+    }
+
+    .checkbox-label {
+        font-size: 13px;
+        align-items: flex-start;
+    }
+
+    .game-container {
+        padding: 10px;
+    }
+
+    .cell {
+        width: calc((100vw - 30px) / 10 - 4px);
+        height: calc((100vw - 30px) / 10 - 4px);
+    }
 }
